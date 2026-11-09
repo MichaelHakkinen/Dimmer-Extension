@@ -1,0 +1,218 @@
+/**
+ * Dimmer Dark Mode - Content Stylesheet
+ * Universal dark mode engine with multiple themes, media preservation, and zero flicker
+ */
+
+/* ==========================================================================
+   CSS Variables & Defaults
+   ========================================================================== */
+:root {
+  --dimmer-brightness: 90%;
+  --dimmer-contrast: 95%;
+  --dimmer-sepia: 0%;
+  --dimmer-grayscale: 0%;
+}
+
+/* ==========================================================================
+   Anti-Flicker Early Guard
+   ========================================================================== */
+html.dimmer-preloading {
+  background-color: #121214 !important;
+  color-scheme: dark !important;
+}
+
+/* ==========================================================================
+   Mode 1: SMART INVERT (Default & Recommended)
+   Intelligently inverts light pages to a sleek charcoal dark mode,
+   preserving color relationships and preventing media inversion.
+   ========================================================================== */
+html.dimmer-active.dimmer-mode-smart {
+  filter: invert(90%) hue-rotate(180deg) 
+          brightness(var(--dimmer-brightness, 90%)) 
+          contrast(var(--dimmer-contrast, 95%)) 
+          sepia(var(--dimmer-sepia, 0%)) 
+          grayscale(var(--dimmer-grayscale, 0%)) !important;
+  background-color: #121214 !important;
+  color-scheme: dark !important;
+  transition: filter 0.15s ease-in-out !important;
+}
+
+/* Prevent double inversion of media elements */
+html.dimmer-active.dimmer-mode-smart img,
+html.dimmer-active.dimmer-mode-smart video,
+html.dimmer-active.dimmer-mode-smart canvas,
+html.dimmer-active.dimmer-mode-smart picture,
+html.dimmer-active.dimmer-mode-smart embed,
+html.dimmer-active.dimmer-mode-smart object,
+html.dimmer-active.dimmer-mode-smart svg:not([fill="currentColor"]):not([fill="currentcolor"]),
+html.dimmer-active.dimmer-mode-smart [style*="background-image"]:not([style*="linear-gradient"]),
+html.dimmer-active.dimmer-mode-smart [class*="avatar"],
+html.dimmer-active.dimmer-mode-smart [class*="thumb"] {
+  filter: invert(100%) hue-rotate(180deg) !important;
+}
+
+/* Fix nested elements inside picture / video / avatar */
+html.dimmer-active.dimmer-mode-smart picture img,
+html.dimmer-active.dimmer-mode-smart video img,
+html.dimmer-active.dimmer-mode-smart img img,
+html.dimmer-active.dimmer-mode-smart [class*="avatar"] img,
+html.dimmer-active.dimmer-mode-smart [class*="thumb"] img {
+  filter: none !important;
+}
+
+/* Fix iframes (iframes manage their own dark mode independently) */
+html.dimmer-active.dimmer-mode-smart iframe {
+  filter: none !important;
+}
+
+/* ==========================================================================
+   Mode 2: OLED PURE BLACK
+   True #000000 black background for maximum battery saving and contrast.
+   ========================================================================== */
+html.dimmer-active.dimmer-mode-oled {
+  filter: invert(100%) hue-rotate(180deg) 
+          contrast(105%) 
+          brightness(var(--dimmer-brightness, 95%)) 
+          sepia(var(--dimmer-sepia, 0%)) 
+          grayscale(var(--dimmer-grayscale, 0%)) !important;
+  background-color: #000000 !important;
+  color-scheme: dark !important;
+  transition: filter 0.15s ease-in-out !important;
+}
+
+html.dimmer-active.dimmer-mode-oled body {
+  background-color: #000000 !important;
+}
+
+html.dimmer-active.dimmer-mode-oled img,
+html.dimmer-active.dimmer-mode-oled video,
+html.dimmer-active.dimmer-mode-oled canvas,
+html.dimmer-active.dimmer-mode-oled picture,
+html.dimmer-active.dimmer-mode-oled embed,
+html.dimmer-active.dimmer-mode-oled object,
+html.dimmer-active.dimmer-mode-oled svg:not([fill="currentColor"]):not([fill="currentcolor"]),
+html.dimmer-active.dimmer-mode-oled [style*="background-image"]:not([style*="linear-gradient"]),
+html.dimmer-active.dimmer-mode-oled [class*="avatar"],
+html.dimmer-active.dimmer-mode-oled [class*="thumb"] {
+  filter: invert(100%) hue-rotate(180deg) contrast(95%) !important;
+}
+
+html.dimmer-active.dimmer-mode-oled picture img,
+html.dimmer-active.dimmer-mode-oled video img,
+html.dimmer-active.dimmer-mode-oled img img,
+html.dimmer-active.dimmer-mode-oled [class*="avatar"] img,
+html.dimmer-active.dimmer-mode-oled [class*="thumb"] img {
+  filter: none !important;
+}
+
+html.dimmer-active.dimmer-mode-oled iframe {
+  filter: none !important;
+}
+
+/* ==========================================================================
+   Mode 3: NIGHT SHIFT / WARM DIMMER
+   Retains normal colors but softens brightness and casts a warm sepia tone
+   to eliminate blue light and reduce eye fatigue at night.
+   ========================================================================== */
+html.dimmer-active.dimmer-mode-night {
+  filter: brightness(var(--dimmer-brightness, 80%)) 
+          contrast(var(--dimmer-contrast, 95%)) 
+          sepia(var(--dimmer-sepia, 40%)) 
+          grayscale(var(--dimmer-grayscale, 0%)) !important;
+  transition: filter 0.15s ease-in-out !important;
+}
+
+/* ==========================================================================
+   Mode 4: DEEP CHARCOAL (Direct Color Replacement)
+   A rich, modern dark theme without filter inversion.
+   ========================================================================== */
+html.dimmer-active.dimmer-mode-deep,
+html.dimmer-active.dimmer-mode-deep body {
+  background-color: #16181a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+  color-scheme: dark !important;
+}
+
+html.dimmer-active.dimmer-mode-deep a {
+  color: #60a5fa !important;
+}
+
+html.dimmer-active.dimmer-mode-deep a:visited {
+  color: #c084fc !important;
+}
+
+html.dimmer-active.dimmer-mode-deep input,
+html.dimmer-active.dimmer-mode-deep textarea,
+html.dimmer-active.dimmer-mode-deep select {
+  background-color: #24292f !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+html.dimmer-active.dimmer-mode-deep table,
+html.dimmer-active.dimmer-mode-deep th,
+html.dimmer-active.dimmer-mode-deep td {
+  border-color: #334155 !important;
+}
+
+/* ==========================================================================
+   Typography & Readability Boosters
+   ========================================================================== */
+html.dimmer-active.dimmer-font-smoothing * {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+html.dimmer-active.dimmer-font-bold-medium * {
+  text-shadow: 0 0 0.25px currentColor !important;
+}
+
+html.dimmer-active.dimmer-font-bold-high * {
+  text-shadow: 0 0 0.5px currentColor !important;
+}
+
+/* ==========================================================================
+   Fullscreen Video Protection
+   ========================================================================== */
+video:fullscreen,
+:fullscreen video,
+[data-fullscreen] video {
+  filter: none !important;
+}
+
+/* ==========================================================================
+   Custom Dark Scrollbar (When Dimmer is Active)
+   ========================================================================== */
+html.dimmer-active ::-webkit-scrollbar {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+html.dimmer-active ::-webkit-scrollbar-track {
+  background: #181a1b !important;
+}
+
+html.dimmer-active ::-webkit-scrollbar-thumb {
+  background: #3a3f44 !important;
+  border-radius: 5px !important;
+  border: 2px solid #181a1b !important;
+}
+
+html.dimmer-active ::-webkit-scrollbar-thumb:hover {
+  background: #50575d !important;
+}
+
+/* ==========================================================================
+   Print Optimization: Never waste ink when printing
+   ========================================================================== */
+@media print {
+  html.dimmer-active {
+    filter: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  html.dimmer-active * {
+    filter: none !important;
+  }
+}

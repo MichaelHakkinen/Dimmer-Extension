@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dimmer Test Page - Sample Website</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background-color: #ffffff;
+      color: #1f2937;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f3f4f6;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 6px;
+      margin-bottom: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    code {
+      background: #e5e7eb;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    pre {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .media-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .media-box {
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Dimmer Test Page</h1>
+      <p>This is a standard bright white webpage designed to test Dimmer's universal dark mode engine.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Typography & Buttons</h2>
+      <p>Universal dark mode transforms this entire bright surface into a soft, eye-friendly dark slate with crisp, legible contrast.</p>
+      <button class="btn">Primary Action</button>
+      <a href="#" style="margin-left: 14px; color: #2563eb;">Hyperlink Example</a>
+    </div>
+
+    <div class="card">
+      <h2>2. Media & Image Inversion Test</h2>
+      <p>Photos and graphics should keep their natural colors without looking inverted or washed out:</p>
+      <div class="media-grid">
+        <div class="media-box">
+          <p><strong>SVG Graphic</strong></p>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="#2563eb">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="media-box">
+          <p><strong>Canvas Element</strong></p>
+          <canvas id="demoCanvas" width="120" height="60" style="border: 1px solid #ccc;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Interactive Form Controls</h2>
+      <label for="txtName">Name</label>
+      <input type="text" id="txtName" placeholder="Enter your name">
+      <label for="selRole">Option</label>
+      <select id="selRole">
+        <option>Standard Option 1</option>
+        <option>Standard Option 2</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>4. Tables & Code Blocks</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Smart Invert</td>
+            <td>Enabled</td>
+            <td>Active</td>
+          </tr>
+          <tr>
+            <td>Anti-Flicker</td>
+            <td>Active</td>
+            <td>Zero White Flash</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code>// Example Code Block
+const dimmer = new DimmerDarkMode({
+  theme: 'smart',
+  brightness: 90,
+  contrast: 95
+});</code></pre>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('demoCanvas');
+    if (canvas && canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(10, 10, 40, 40);
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(85, 30, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  </script>
+</body>
+</html>
+

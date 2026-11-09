@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dimmer Settings &amp; Preferences</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Dimmer Logo" class="brand-logo">
+        <div class="brand-info">
+          <h2>Dimmer</h2>
+          <span>Universal Dark Mode</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button type="button" class="nav-item active" data-tab="general">
+          <span class="nav-icon">⚙️</span> General &amp; Display
+        </button>
+        <button type="button" class="nav-item" data-tab="sites">
+          <span class="nav-icon">🌐</span> Website Management
+        </button>
+        <button type="button" class="nav-item" data-tab="typography">
+          <span class="nav-icon">🔤</span> Text &amp; Readability
+        </button>
+        <button type="button" class="nav-item" data-tab="shortcuts">
+          <span class="nav-icon">⌨️</span> Keyboard Shortcuts
+        </button>
+        <button type="button" class="nav-item" data-tab="backup">
+          <span class="nav-icon">💾</span> Backup &amp; Sync
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span>Dimmer v1.0.0</span>
+        <button type="button" id="resetAllBtn" class="btn-danger-outline">Reset to Defaults</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- General Tab -->
+      <section class="tab-panel active" id="tab-general">
+        <div class="panel-header">
+          <h1>General &amp; Display Preferences</h1>
+          <p>Customize the default dark theme engine and automated schedules.</p>
+        </div>
+
+        <div class="card">
+          <h3>Default Theme Mode</h3>
+          <p class="card-desc">Choose which engine is applied to websites by default.</p>
+          <div class="radio-grid">
+            <label class="theme-choice">
+              <input type="radio" name="optMode" value="smart">
+              <div class="choice-content">
+                <strong>Smart Dark (Recommended)</strong>
+                <span>Inverts light surfaces while intelligently protecting photos, videos, and icons.</span>
+              </div>
+            </label>
+            <label class="theme-choice">
+              <input type="radio" name="optMode" value="oled">
+              <div class="choice-content">
+                <strong>OLED Black</strong>
+                <span>High-contrast true #000000 black background for maximum OLED battery savings.</span>
+              </div>
+            </label>
+            <label class="theme-choice">
+              <input type="radio" name="optMode" value="night">
+              <div class="choice-content">
+                <strong>Night Shift</strong>
+                <span>Reduces screen brightness and adds a warm sepia tone to minimize blue light.</span>
+              </div>
+            </label>
+            <label class="theme-choice">
+              <input type="radio" name="optMode" value="deep">
+              <div class="choice-content">
+                <strong>Modern Charcoal</strong>
+                <span>Direct CSS color replacement for a native slate stylesheet appearance.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Automation &amp; Timing</h3>
+          <p class="card-desc">Configure when dark mode should be enabled automatically.</p>
+          <div class="form-group">
+            <label class="choice-inline">
+              <input type="radio" name="optActivation" value="always">
+              <span>Always Enabled (24/7)</span>
+            </label>
+            <label class="choice-inline">
+              <input type="radio" name="optActivation" value="system">
+              <span>Follow System Dark Mode (Sync with Windows/macOS theme)</span>
+            </label>
+            <label class="choice-inline">
+              <input type="radio" name="optActivation" value="schedule">
+              <span>Time-based Schedule</span>
+            </label>
+          </div>
+          <div class="schedule-row" id="optScheduleRow">
+            <div class="time-box">
+              <label for="optSchedStart">Turn ON at</label>
+              <input type="time" id="optSchedStart" value="19:00">
+            </div>
+            <div class="time-box">
+              <label for="optSchedEnd">Turn OFF at</label>
+              <input type="time" id="optSchedEnd" value="07:00">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Smooth Visual Transitions</h3>
+          <p class="card-desc">Animate the transition smoothly when turning dark mode on or off.</p>
+          <label class="switch-row">
+            <span>Enable transition animation</span>
+            <input type="checkbox" id="optTransition" checked>
+          </label>
+        </div>
+      </section>
+
+      <!-- Websites Tab -->
+      <section class="tab-panel" id="tab-sites">
+        <div class="panel-header">
+          <h1>Website Management</h1>
+          <p>Control which websites run Dimmer and manage your domain list.</p>
+        </div>
+
+        <div class="card">
+          <h3>List Mode</h3>
+          <div class="form-group">
+            <label class="choice-inline">
+              <input type="radio" name="optListMode" value="blacklist" checked>
+              <span><strong>Invert All Websites EXCEPT Excluded Sites</strong> (Standard)</span>
+            </label>
+            <label class="choice-inline">
+              <input type="radio" name="optListMode" value="whitelist">
+              <span><strong>Invert ONLY Included Websites</strong> (Strict Whitelist)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-actions">
+            <div>
+              <h3>Configured Domains (<span id="optSitesCount">0</span>)</h3>
+              <p class="card-desc">Websites matching these domain names will follow your list rule above.</p>
+            </div>
+            <button type="button" id="clearAllSitesBtn" class="btn-danger-sm">Clear All</button>
+          </div>
+
+          <div class="add-domain-bar">
+            <input type="text" id="optNewDomain" placeholder="e.g. github.com or youtube.com">
+            <button type="button" id="optAddDomainBtn" class="btn-primary">Add Domain</button>
+          </div>
+
+          <div class="search-domain-bar">
+            <input type="text" id="optSearchDomain" placeholder="Filter domain list...">
+          </div>
+
+          <ul class="domain-list" id="optDomainList">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+      </section>
+
+      <!-- Typography Tab -->
+      <section class="tab-panel" id="tab-typography">
+        <div class="panel-header">
+          <h1>Text &amp; Readability Enhancements</h1>
+          <p>Make thin fonts and text easier to read against dark backgrounds.</p>
+        </div>
+
+        <div class="card">
+          <h3>Font Boldness Booster</h3>
+          <p class="card-desc">Increase the stroke weight of webpage fonts for improved legibility on dark themes.</p>
+          <div class="select-wrapper">
+            <select id="optFontBold">
+              <option value="none">Normal (No adjustment)</option>
+              <option value="medium">Medium Boost (+0.25px stroke)</option>
+              <option value="high">High Boost (+0.50px stroke)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Subpixel Font Smoothing</h3>
+          <p class="card-desc">Applies crisp anti-aliased font rendering across all websites.</p>
+          <label class="switch-row">
+            <span>Enable crisp font anti-aliasing</span>
+            <input type="checkbox" id="optFontSmoothing" checked>
+          </label>
+        </div>
+      </section>
+
+      <!-- Shortcuts Tab -->
+      <section class="tab-panel" id="tab-shortcuts">
+        <div class="panel-header">
+          <h1>Keyboard Shortcuts</h1>
+          <p>Control Dimmer with rapid keyboard shortcuts from anywhere in your browser.</p>
+        </div>
+
+        <div class="card">
+          <div class="shortcut-item">
+            <div>
+              <strong>Toggle Global Dark Mode</strong>
+              <p class="card-desc">Turns Dimmer on or off across all open tabs.</p>
+            </div>
+            <div class="shortcut-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd></div>
+          </div>
+
+          <div class="shortcut-item">
+            <div>
+              <strong>Toggle Current Website</strong>
+              <p class="card-desc">Adds or removes the active tab's domain from the excluded list.</p>
+            </div>
+            <div class="shortcut-keys"><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></div>
+          </div>
+
+          <div class="customize-shortcuts-box">
+            <p>Want to change these hotkeys? You can customize them anytime in Chrome's keyboard shortcuts manager:</p>
+            <button type="button" id="openShortcutsBtn" class="btn-secondary">Open Chrome Shortcuts Manager</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Backup Tab -->
+      <section class="tab-panel" id="tab-backup">
+        <div class="panel-header">
+          <h1>Backup, Export &amp; Restore</h1>
+          <p>Save your custom configuration or transfer it to another browser.</p>
+        </div>
+
+        <div class="card">
+          <h3>Export Settings</h3>
+          <p class="card-desc">Download a backup file with your display values, mode, and excluded websites.</p>
+          <button type="button" id="exportBtn" class="btn-primary">Download JSON Backup</button>
+        </div>
+
+        <div class="card">
+          <h3>Import Settings</h3>
+          <p class="card-desc">Restore your saved preferences from a previously exported Dimmer backup file.</p>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+          <button type="button" id="importBtn" class="btn-secondary">Choose Backup File (.json)</button>
+          <span id="importStatus" class="status-msg"></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Preferences saved</div>
+  <script src="options.js"></script>
+</body>
+</html>

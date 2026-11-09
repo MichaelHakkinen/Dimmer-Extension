@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dimmer - Universal Dark Mode</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <img src="../icons/icon32.png" alt="Dimmer Logo" class="brand-icon">
+        <div class="brand-text">
+          <h1>Dimmer</h1>
+          <span class="brand-subtitle">Universal Dark Mode</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="openOptionsBtn" class="icon-btn" title="Open Settings">⚙️</button>
+        <label class="master-toggle" title="Toggle Dark Mode Globally">
+          <input type="checkbox" id="masterToggle" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </header>
+
+    <!-- Current Site Card -->
+    <section class="site-card" id="siteCard">
+      <div class="site-info">
+        <span class="site-icon" id="siteIcon">🌐</span>
+        <div class="site-details">
+          <span class="site-domain" id="siteDomain">Loading...</span>
+          <span class="site-status" id="siteStatus">Checking status...</span>
+        </div>
+      </div>
+      <label class="site-toggle-wrapper">
+        <input type="checkbox" id="siteToggle" checked>
+        <span class="site-switch-label" id="siteToggleLabel">Active</span>
+      </label>
+    </section>
+
+    <!-- Theme Modes -->
+    <section class="section">
+      <div class="section-title">Theme Engine</div>
+      <div class="theme-grid">
+        <button type="button" class="theme-btn active" data-mode="smart">
+          <span class="theme-icon">✨</span>
+          <span class="theme-name">Smart Dark</span>
+          <span class="theme-desc">Preserves media</span>
+        </button>
+        <button type="button" class="theme-btn" data-mode="oled">
+          <span class="theme-icon">🌑</span>
+          <span class="theme-name">OLED Black</span>
+          <span class="theme-desc">Pure 0% black</span>
+        </button>
+        <button type="button" class="theme-btn" data-mode="night">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-name">Night Shift</span>
+          <span class="theme-desc">Warm blue-cut</span>
+        </button>
+        <button type="button" class="theme-btn" data-mode="deep">
+          <span class="theme-icon">🎨</span>
+          <span class="theme-name">Charcoal</span>
+          <span class="theme-desc">Modern dark UI</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Sliders / Adjustments -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-title">Display Tuning</span>
+        <button type="button" id="resetSlidersBtn" class="link-btn" title="Reset display values to default">Reset</button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Brightness</span>
+          <span class="slider-val" id="valBrightness">90%</span>
+        </div>
+        <input type="range" id="sliderBrightness" min="50" max="120" value="90" step="5">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Contrast</span>
+          <span class="slider-val" id="valContrast">95%</span>
+        </div>
+        <input type="range" id="sliderContrast" min="60" max="140" value="95" step="5">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Warmth (Sepia)</span>
+          <span class="slider-val" id="valSepia">0%</span>
+        </div>
+        <input type="range" id="sliderSepia" min="0" max="100" value="0" step="5">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Grayscale</span>
+          <span class="slider-val" id="valGrayscale">0%</span>
+        </div>
+        <input type="range" id="sliderGrayscale" min="0" max="100" value="0" step="5">
+      </div>
+    </section>
+
+    <!-- Automation & Schedule Accordion -->
+    <section class="section">
+      <div class="section-header">
+        <span class="section-title">Automation</span>
+      </div>
+      <div class="automation-options">
+        <label class="radio-label">
+          <input type="radio" name="activationMode" value="always" checked>
+          <span>Always On</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="activationMode" value="system">
+          <span>Follow System Dark Mode</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="activationMode" value="schedule">
+          <span>Schedule</span>
+        </label>
+      </div>
+      <div class="schedule-inputs" id="scheduleInputs" style="display: none;">
+        <div class="time-field">
+          <label for="schedStart">Start</label>
+          <input type="time" id="schedStart" value="19:00">
+        </div>
+        <div class="time-field">
+          <label for="schedEnd">End</label>
+          <input type="time" id="schedEnd" value="07:00">
+        </div>
+      </div>
+    </section>
+
+    <!-- Excluded Sites Management Accordion -->
+    <details class="accordion">
+      <summary class="accordion-summary">
+        <span>Excluded Sites (<span id="excludedCount">0</span>)</span>
+        <span class="accordion-arrow">›</span>
+      </summary>
+      <div class="accordion-content">
+        <div class="add-site-row">
+          <input type="text" id="manualSiteInput" placeholder="example.com">
+          <button type="button" id="manualAddSiteBtn" class="btn-primary">Add</button>
+        </div>
+        <ul class="excluded-list" id="excludedList">
+          <!-- Dynamically populated -->
+        </ul>
+      </div>
+    </details>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="shortcuts-hint">
+        <kbd>Alt+Shift+D</kbd> Toggle Global &bull; <kbd>Alt+Shift+S</kbd> Toggle Site
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+
