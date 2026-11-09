@@ -28,6 +28,73 @@
   let currentConfig = { ...DEFAULT_CONFIG };
   const currentHostname = window.location.hostname.toLowerCase().replace(/^www\./, '');
 
+  // Invert-based modes would turn an already-dark site light, so they are skipped there
+  const INVERT_MODES = ['smart', 'oled'];
+  const DIMMER_CLASSES = [
+    'dimmer-preloading',
+    'dimmer-active',
+    'dimmer-mode-smart',
+    'dimmer-mode-oled',
+    'dimmer-mode-night',
+    'dimmer-mode-deep',
+    'dimmer-font-smoothing',
+    'dimmer-font-bold-medium',
+    'dimmer-font-bold-high'
+  ];
+  let pageIsNativelyDark = false;
+
+  function parseColor(str) {
+    const m = str && str.match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    const parts = m[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+    return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+  }
+
+  function luminance({ r, g, b }) {
+    const lin = (c) => {
+      c /= 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  }
+
+  /**
+   * Detect whether the site already renders a dark theme on its own.
+   * Dimmer's classes are removed for the measurement so our own overrides
+   * don't skew the result, then restored synchronously (no repaint happens).
+   */
+  function detectNativeDark() {
+    const root = document.documentElement;
+    const body = document.body;
+    if (!root || !body) return false;
+
+    const saved = DIMMER_CLASSES.filter(c => root.classList.contains(c));
+    root.classList.remove(...saved);
+
+    let bg = null;
+    for (const el of [body, root]) {
+      const c = parseColor(getComputedStyle(el).backgroundColor);
+      if (c && c.a > 0.5) { bg = c; break; }
+    }
+    const textColor = parseColor(getComputedStyle(body).color);
+    const scheme = getComputedStyle(root).colorScheme || '';
+
+    root.classList.add(...saved);
+
+    if (bg) return luminance(bg) < 0.2;
+    // Transparent page: the canvas is dark only if the page opted into a dark color-scheme
+    // and its text is light
+    return /dark/.test(scheme) && !!textColor && luminance(textColor) > 0.5;
+  }
+
+  function refreshNativeDark() {
+    const isDark = detectNativeDark();
+    if (isDark !== pageIsNativelyDark) {
+      pageIsNativelyDark = isDark;
+      applyTheme(currentConfig);
+    }
+  }
+
   // Fast anti-flicker guard before settings load
   if (document.documentElement) {
     document.documentElement.classList.add('dimmer-preloading');
@@ -87,24 +154,16 @@
 
     const isActive = shouldBeActive(config);
 
-    // Remove preloading guard
-    root.classList.remove('dimmer-preloading');
-
-    // Remove existing mode classes
-    root.classList.remove(
-      'dimmer-active', 
-      'dimmer-mode-smart', 
-      'dimmer-mode-oled', 
-      'dimmer-mode-night', 
-      'dimmer-mode-deep',
-      'dimmer-font-smoothing',
-      'dimmer-font-bold-medium',
-      'dimmer-font-bold-high'
-    );
+    // Remove preloading guard and existing mode classes
+    root.classList.remove(...DIMMER_CLASSES);
 
     if (isActive) {
+      const mode = config.mode || 'smart';
       root.classList.add('dimmer-active');
-      root.classList.add(`dimmer-mode-${config.mode || 'smart'}`);
+      // Site is already dark: inverting it would make it light again, so leave it as-is
+      if (!(pageIsNativelyDark && INVERT_MODES.includes(mode))) {
+        root.classList.add(`dimmer-mode-${mode}`);
+      }
 
       if (config.fontSmoothing !== false) {
         root.classList.add('dimmer-font-smoothing');
@@ -147,6 +206,18 @@
   // Initial load
   loadConfigAndApply();
 
+  // Check for native dark themes once the page has styled itself
+  // (again on load and shortly after, for sites that switch theme via JS)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', refreshNativeDark, { once: true });
+  } else {
+    refreshNativeDark();
+  }
+  window.addEventListener('load', () => {
+    refreshNativeDark();
+    setTimeout(refreshNativeDark, 1500);
+  }, { once: true });
+
   // Listen for storage changes in real-time
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local') {
@@ -178,9 +249,9 @@
   // System color scheme change listener
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (currentConfig.activationMode === 'system') {
-        applyTheme(currentConfig);
-      }
+      // The site may switch its own theme with the OS, so re-detect too
+      pageIsNativelyDark = detectNativeDark();
+      applyTheme(currentConfig);
     });
   }
 })();

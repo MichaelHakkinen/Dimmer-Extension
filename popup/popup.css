@@ -3,16 +3,16 @@
    ========================================================================== */
 
 :root {
-  --bg-primary: #0b0f19;
-  --bg-card: #151c2c;
-  --bg-hover: #1e293b;
-  --border-color: #243046;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent-cyan: #38bdf8;
-  --accent-indigo: #6366f1;
-  --accent-glow: rgba(56, 189, 248, 0.35);
+  --bg-primary: #0e0e11;
+  --bg-card: #18181d;
+  --bg-hover: #222228;
+  --border-color: #2a2a32;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --accent: #a78bfa;
+  --accent-strong: #7c3aed;
+  --accent-glow: rgba(167, 139, 250, 0.35);
   --success: #10b981;
   --danger: #ef4444;
   --radius-sm: 6px;
@@ -77,7 +77,7 @@ body {
 .brand-subtitle {
   font-size: 10px;
   font-weight: 500;
-  color: var(--accent-cyan);
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -103,7 +103,7 @@ body {
 .icon-btn:hover {
   background-color: var(--bg-hover);
   color: #fff;
-  border-color: var(--accent-cyan);
+  border-color: var(--accent);
 }
 
 /* Master Toggle Switch */
@@ -124,7 +124,7 @@ body {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #334155;
+  background-color: #3f3f46;
   transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -144,7 +144,7 @@ body {
 }
 
 .master-toggle input:checked + .slider {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   box-shadow: 0 0 10px var(--accent-glow);
 }
 
@@ -201,7 +201,7 @@ body {
 
 .site-status {
   font-size: 10.5px;
-  color: var(--accent-cyan);
+  color: var(--accent);
 }
 
 .site-status.disabled {
@@ -222,9 +222,9 @@ body {
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background-color: rgba(56, 189, 248, 0.15);
-  color: var(--accent-cyan);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background-color: rgba(167, 139, 250, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(167, 139, 250, 0.3);
   transition: all 0.2s ease;
 }
 
@@ -260,7 +260,7 @@ body {
 .link-btn {
   background: none;
   border: none;
-  color: var(--accent-cyan);
+  color: var(--accent);
   font-size: 11px;
   cursor: pointer;
   padding: 0;
@@ -297,13 +297,13 @@ body {
 
 .theme-btn:hover {
   background-color: var(--bg-hover);
-  border-color: #3b4963;
+  border-color: #4a4a55;
 }
 
 .theme-btn.active {
-  background-color: rgba(56, 189, 248, 0.12);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  background-color: rgba(167, 139, 250, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.2);
 }
 
 .theme-icon {
@@ -323,7 +323,7 @@ body {
 }
 
 .theme-btn.active .theme-desc {
-  color: var(--accent-cyan);
+  color: var(--accent);
 }
 
 /* ==========================================================================
@@ -343,7 +343,7 @@ body {
 }
 
 .slider-val {
-  color: var(--accent-cyan);
+  color: var(--accent);
   font-weight: 600;
   font-size: 11px;
 }
@@ -354,7 +354,7 @@ input[type="range"] {
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: #243046;
+  background: #2a2a32;
   outline: none;
   cursor: pointer;
 }
@@ -365,9 +365,9 @@ input[type="range"]::-webkit-slider-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--accent-cyan);
+  background: var(--accent);
   cursor: pointer;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.6);
   transition: transform 0.1s;
 }
 
@@ -398,7 +398,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .radio-label input[type="radio"] {
-  accent-color: var(--accent-cyan);
+  accent-color: var(--accent);
 }
 
 .radio-label:has(input:checked) {
@@ -497,13 +497,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .add-site-row input:focus {
   outline: none;
-  border-color: var(--accent-cyan);
+  border-color: var(--accent);
 }
 
 .btn-primary {
-  background-color: var(--accent-cyan);
+  background-color: var(--accent);
   border: none;
-  color: #0b0f19;
+  color: #0e0e11;
   font-weight: 700;
   font-size: 11px;
   border-radius: var(--radius-sm);
@@ -572,8 +572,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 kbd {
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: #222228;
+  border: 1px solid #3f3f46;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 9.5px;

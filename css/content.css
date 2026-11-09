@@ -22,92 +22,55 @@ html.dimmer-preloading {
 }
 
 /* ==========================================================================
-   Mode 1: SMART INVERT (Default & Recommended)
-   Intelligently inverts light pages to a sleek charcoal dark mode,
-   preserving color relationships and preventing media inversion.
+   Invert modes (Smart / OLED)
+   The whole page is inverted with an exact 100% invert, and media is
+   inverted back with the exact inverse so photos keep their real colors.
+   The root background is white on purpose: it goes through the filter and
+   comes out dark (a dark root background would come out light gray).
    ========================================================================== */
-html.dimmer-active.dimmer-mode-smart {
-  filter: invert(90%) hue-rotate(180deg) 
-          brightness(var(--dimmer-brightness, 90%)) 
-          contrast(var(--dimmer-contrast, 95%)) 
-          sepia(var(--dimmer-sepia, 0%)) 
-          grayscale(var(--dimmer-grayscale, 0%)) !important;
-  background-color: #121214 !important;
-  color-scheme: dark !important;
-  transition: filter 0.15s ease-in-out !important;
-}
-
-/* Prevent double inversion of media elements */
-html.dimmer-active.dimmer-mode-smart img,
-html.dimmer-active.dimmer-mode-smart video,
-html.dimmer-active.dimmer-mode-smart canvas,
-html.dimmer-active.dimmer-mode-smart picture,
-html.dimmer-active.dimmer-mode-smart embed,
-html.dimmer-active.dimmer-mode-smart object,
-html.dimmer-active.dimmer-mode-smart svg:not([fill="currentColor"]):not([fill="currentcolor"]),
-html.dimmer-active.dimmer-mode-smart [style*="background-image"]:not([style*="linear-gradient"]),
-html.dimmer-active.dimmer-mode-smart [class*="avatar"],
-html.dimmer-active.dimmer-mode-smart [class*="thumb"] {
-  filter: invert(100%) hue-rotate(180deg) !important;
-}
-
-/* Fix nested elements inside picture / video / avatar */
-html.dimmer-active.dimmer-mode-smart picture img,
-html.dimmer-active.dimmer-mode-smart video img,
-html.dimmer-active.dimmer-mode-smart img img,
-html.dimmer-active.dimmer-mode-smart [class*="avatar"] img,
-html.dimmer-active.dimmer-mode-smart [class*="thumb"] img {
-  filter: none !important;
-}
-
-/* Fix iframes (iframes manage their own dark mode independently) */
-html.dimmer-active.dimmer-mode-smart iframe {
-  filter: none !important;
-}
-
-/* ==========================================================================
-   Mode 2: OLED PURE BLACK
-   True #000000 black background for maximum battery saving and contrast.
-   ========================================================================== */
+html.dimmer-active.dimmer-mode-smart,
 html.dimmer-active.dimmer-mode-oled {
-  filter: invert(100%) hue-rotate(180deg) 
-          contrast(105%) 
-          brightness(var(--dimmer-brightness, 95%)) 
-          sepia(var(--dimmer-sepia, 0%)) 
-          grayscale(var(--dimmer-grayscale, 0%)) !important;
-  background-color: #000000 !important;
-  color-scheme: dark !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important; /* native widgets render light, then invert to dark */
   transition: filter 0.15s ease-in-out !important;
+}
+
+/* Mode 1: SMART (default). contrast(88%) lifts pure black to a soft charcoal. */
+html.dimmer-active.dimmer-mode-smart {
+  filter: invert(100%) hue-rotate(180deg) contrast(88%)
+          brightness(var(--dimmer-brightness, 90%))
+          contrast(var(--dimmer-contrast, 95%))
+          sepia(var(--dimmer-sepia, 0%))
+          grayscale(var(--dimmer-grayscale, 0%)) !important;
+}
+
+/* Mode 2: OLED. Pure black, slightly boosted contrast. */
+html.dimmer-active.dimmer-mode-oled {
+  filter: invert(100%) hue-rotate(180deg) contrast(105%)
+          brightness(var(--dimmer-brightness, 95%))
+          sepia(var(--dimmer-sepia, 0%))
+          grayscale(var(--dimmer-grayscale, 0%)) !important;
 }
 
 html.dimmer-active.dimmer-mode-oled body {
-  background-color: #000000 !important;
+  background-color: #ffffff !important; /* inverted to #000000 */
 }
 
-html.dimmer-active.dimmer-mode-oled img,
-html.dimmer-active.dimmer-mode-oled video,
-html.dimmer-active.dimmer-mode-oled canvas,
-html.dimmer-active.dimmer-mode-oled picture,
-html.dimmer-active.dimmer-mode-oled embed,
-html.dimmer-active.dimmer-mode-oled object,
-html.dimmer-active.dimmer-mode-oled svg:not([fill="currentColor"]):not([fill="currentcolor"]),
-html.dimmer-active.dimmer-mode-oled [style*="background-image"]:not([style*="linear-gradient"]),
-html.dimmer-active.dimmer-mode-oled [class*="avatar"],
-html.dimmer-active.dimmer-mode-oled [class*="thumb"] {
-  filter: invert(100%) hue-rotate(180deg) contrast(95%) !important;
+/* Media: undo the inversion (and the fixed contrast step) so images look original.
+   Only the user's brightness / warmth / grayscale tuning still applies to them. */
+html.dimmer-active.dimmer-mode-smart :is(img, video, canvas, picture, embed, object, iframe, [style*="background-image"]:not([style*="gradient"])) {
+  filter: invert(100%) hue-rotate(180deg) contrast(113.6%) !important;
 }
 
-html.dimmer-active.dimmer-mode-oled picture img,
-html.dimmer-active.dimmer-mode-oled video img,
-html.dimmer-active.dimmer-mode-oled img img,
-html.dimmer-active.dimmer-mode-oled [class*="avatar"] img,
-html.dimmer-active.dimmer-mode-oled [class*="thumb"] img {
+html.dimmer-active.dimmer-mode-oled :is(img, video, canvas, picture, embed, object, iframe, [style*="background-image"]:not([style*="gradient"])) {
+  filter: invert(100%) hue-rotate(180deg) contrast(95.24%) !important;
+}
+
+/* Media nested inside media that was already flipped back must not flip again */
+html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video, object, embed, [style*="background-image"]:not([style*="gradient"])) :is(img, video, canvas, picture, [style*="background-image"]) {
   filter: none !important;
 }
 
-html.dimmer-active.dimmer-mode-oled iframe {
-  filter: none !important;
-}
 
 /* ==========================================================================
    Mode 3: NIGHT SHIFT / WARM DIMMER
@@ -175,9 +138,12 @@ html.dimmer-active.dimmer-font-bold-high * {
 /* ==========================================================================
    Fullscreen Video Protection
    ========================================================================== */
-video:fullscreen,
-:fullscreen video,
-[data-fullscreen] video {
+/* Fullscreen elements leave the page's filter, so media inside must not be flipped back.
+   Extra classes make this beat the media rules above (both are !important). */
+:root.dimmer-active.dimmer-active.dimmer-active :is(
+  video:fullscreen, iframe:fullscreen, canvas:fullscreen, img:fullscreen,
+  :fullscreen video, :fullscreen iframe, :fullscreen canvas, :fullscreen img
+) {
   filter: none !important;
 }
 
