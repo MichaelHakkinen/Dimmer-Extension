@@ -206,6 +206,28 @@
   // Initial load
   loadConfigAndApply();
 
+  /**
+   * Transparent diagrams/screenshots are usually drawn for a white page: their
+   * edges are smoothed against white and look like jagged halos on dark.
+   * Large images get a white backing (via CSS class) so they look as intended.
+   * Small images (icons, short logos) stay transparent.
+   */
+  const SOLID_BG_MIN_SIZE = 120;
+
+  function markImage(img) {
+    if (!(img instanceof HTMLImageElement) || !img.complete || !img.naturalWidth) return;
+    const rect = img.getBoundingClientRect();
+    const w = rect.width || img.naturalWidth;
+    const h = rect.height || img.naturalHeight;
+    img.classList.toggle('dimmer-solid-bg', w >= SOLID_BG_MIN_SIZE && h >= SOLID_BG_MIN_SIZE);
+  }
+
+  // Image load events don't bubble, so listen in the capture phase (covers lazy-loaded images)
+  document.addEventListener('load', (e) => markImage(e.target), true);
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('img').forEach(markImage);
+  }, { once: true });
+
   // Check for native dark themes once the page has styled itself
   // (again on load and shortly after, for sites that switch theme via JS)
   if (document.readyState === 'loading') {

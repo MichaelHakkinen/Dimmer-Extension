@@ -66,6 +66,12 @@ html.dimmer-active.dimmer-mode-oled :is(img, video, canvas, picture, embed, obje
   filter: invert(100%) hue-rotate(180deg) contrast(95.24%) !important;
 }
 
+/* Large transparent images (diagrams, charts) get the white backing they were designed for.
+   The background sits inside the image's own filter, so it ends up white on screen. */
+html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) img.dimmer-solid-bg {
+  background-color: #ffffff !important;
+}
+
 /* Media nested inside media that was already flipped back must not flip again */
 html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video, object, embed, [style*="background-image"]:not([style*="gradient"])) :is(img, video, canvas, picture, [style*="background-image"]) {
   filter: none !important;
