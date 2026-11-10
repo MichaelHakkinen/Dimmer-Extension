@@ -58,11 +58,11 @@ html.dimmer-active.dimmer-mode-oled body {
 
 /* Media: undo the inversion (and the fixed contrast step) so images look original.
    Only the user's brightness / warmth / grayscale tuning still applies to them. */
-html.dimmer-active.dimmer-mode-smart :is(img, video, canvas, picture, embed, object, iframe, [style*="background-image"]:not([style*="gradient"])) {
+html.dimmer-active.dimmer-mode-smart :is(img, video, canvas, picture, embed, object, iframe, svg:has(image), .dimmer-bg-image, [style*="background-image"]:not([style*="gradient"])) {
   filter: invert(100%) hue-rotate(180deg) contrast(113.6%) !important;
 }
 
-html.dimmer-active.dimmer-mode-oled :is(img, video, canvas, picture, embed, object, iframe, [style*="background-image"]:not([style*="gradient"])) {
+html.dimmer-active.dimmer-mode-oled :is(img, video, canvas, picture, embed, object, iframe, svg:has(image), .dimmer-bg-image, [style*="background-image"]:not([style*="gradient"])) {
   filter: invert(100%) hue-rotate(180deg) contrast(95.24%) !important;
 }
 
@@ -73,7 +73,7 @@ html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) img.dimmer-solid-bg
 }
 
 /* Media nested inside media that was already flipped back must not flip again */
-html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video, object, embed, [style*="background-image"]:not([style*="gradient"])) :is(img, video, canvas, picture, [style*="background-image"]) {
+html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video, object, embed, svg:has(image), .dimmer-bg-image, [style*="background-image"]:not([style*="gradient"])) :is(img, video, canvas, picture, svg, .dimmer-bg-image, [style*="background-image"]) {
   filter: none !important;
 }
 
@@ -148,7 +148,8 @@ html.dimmer-active.dimmer-font-bold-high * {
    Extra classes make this beat the media rules above (both are !important). */
 :root.dimmer-active.dimmer-active.dimmer-active :is(
   video:fullscreen, iframe:fullscreen, canvas:fullscreen, img:fullscreen,
-  :fullscreen video, :fullscreen iframe, :fullscreen canvas, :fullscreen img
+  :fullscreen video, :fullscreen iframe, :fullscreen canvas, :fullscreen img,
+  :fullscreen svg, :fullscreen .dimmer-bg-image
 ) {
   filter: none !important;
 }

@@ -228,6 +228,101 @@
     document.querySelectorAll('img').forEach(markImage);
   }, { once: true });
 
+  /**
+   * Many sites draw avatars and thumbnails as CSS background images set in a
+   * stylesheet, which CSS selectors can't see. Find them via computed style
+   * and tag them so the stylesheet flips them back like regular images.
+   */
+  const BG_IMAGE_CLASS = 'dimmer-bg-image';
+  const BG_MIN_SIZE = 12;          // smaller than this is decoration, not a picture
+  const BG_MAX_DESCENDANTS = 40;   // more than this is a page/section wrapper with a texture
+  const SKIP_TAGS = new Set(['HTML', 'BODY', 'HEAD', 'SCRIPT', 'STYLE', 'LINK', 'META',
+    'IMG', 'VIDEO', 'CANVAS', 'PICTURE', 'IFRAME', 'EMBED', 'OBJECT', 'SVG', 'svg']);
+
+  function hasPictureBackground(el) {
+    const bg = getComputedStyle(el).backgroundImage;
+    if (!bg || bg === 'none' || !bg.includes('url(')) return false;
+    // SVG backgrounds are almost always icons, which should stay inverted to match the text
+    const urls = bg.match(/url\([^)]*\)/g) || [];
+    return urls.some(u => !/(data:image\/svg|\.svg)/i.test(u));
+  }
+
+  function markBackground(el) {
+    if (!(el instanceof Element) || SKIP_TAGS.has(el.tagName)) return;
+    let isPicture = false;
+    if (hasPictureBackground(el)) {
+      const rect = el.getBoundingClientRect();
+      isPicture = rect.width >= BG_MIN_SIZE && rect.height >= BG_MIN_SIZE &&
+        el.getElementsByTagName('*').length <= BG_MAX_DESCENDANTS;
+    }
+    if (isPicture !== el.classList.contains(BG_IMAGE_CLASS)) {
+      el.classList.toggle(BG_IMAGE_CLASS, isPicture);
+    }
+  }
+
+  // Elements are checked in small batches during idle time so big pages don't stall
+  const bgQueue = new Set();
+  let bgScheduled = false;
+  const idle = window.requestIdleCallback || ((cb) => setTimeout(() => cb({ timeRemaining: () => 8 }), 50));
+
+  function queueBackgroundCheck(el) {
+    bgQueue.add(el);
+    if (!bgScheduled) {
+      bgScheduled = true;
+      idle(processBackgroundQueue);
+    }
+  }
+
+  function processBackgroundQueue(deadline) {
+    const it = bgQueue.values();
+    while (bgQueue.size && deadline.timeRemaining() > 1) {
+      const el = it.next().value;
+      bgQueue.delete(el);
+      if (el.isConnected) markBackground(el);
+    }
+    bgScheduled = false;
+    if (bgQueue.size) {
+      bgScheduled = true;
+      idle(processBackgroundQueue);
+    }
+  }
+
+  function queueSubtree(node) {
+    if (!(node instanceof Element)) return;
+    queueBackgroundCheck(node);
+    for (const el of node.getElementsByTagName('*')) queueBackgroundCheck(el);
+  }
+
+  const bgObserver = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === 'childList') {
+        m.addedNodes.forEach(queueSubtree);
+      } else if (m.target !== document.documentElement) {
+        queueBackgroundCheck(m.target);
+      }
+    }
+  });
+
+  function startBackgroundScan() {
+    if (document.body) queueSubtree(document.body);
+    bgObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startBackgroundScan, { once: true });
+  } else {
+    startBackgroundScan();
+  }
+  // Stylesheets that finish loading late can add background images after the first pass
+  window.addEventListener('load', () => {
+    if (document.body) queueSubtree(document.body);
+  }, { once: true });
+
   // Check for native dark themes once the page has styled itself
   // (again on load and shortly after, for sites that switch theme via JS)
   if (document.readyState === 'loading') {
