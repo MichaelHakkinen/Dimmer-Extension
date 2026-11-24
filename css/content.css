@@ -32,7 +32,21 @@ html.dimmer-active.dimmer-mode-smart,
 html.dimmer-active.dimmer-mode-oled {
   background-color: #ffffff !important;
   color-scheme: light !important; /* native widgets render light, then invert to dark */
+}
+
+/* Fade only while the user changes a setting (class added briefly by content.js).
+   A permanent transition made every new page fade from white to dark (a flash). */
+html.dimmer-animate {
   transition: filter 0.15s ease-in-out !important;
+}
+
+/* The flip-back filter as an inherited variable, so stylesheets injected into
+   shadow DOM (which content.css can't reach) can apply it too */
+html.dimmer-active.dimmer-mode-smart {
+  --dimmer-media-filter: invert(100%) hue-rotate(180deg) contrast(113.6%);
+}
+html.dimmer-active.dimmer-mode-oled {
+  --dimmer-media-filter: invert(100%) hue-rotate(180deg) contrast(95.24%);
 }
 
 /* Mode 1: SMART (default). contrast(88%) lifts pure black to a soft charcoal. */
@@ -77,6 +91,17 @@ html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video,
   filter: none !important;
 }
 
+/* ...and shadow DOM content inside them must not flip again either */
+html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(img, video, canvas, picture, embed, object, iframe, svg:has(image), .dimmer-bg-image, [style*="background-image"]:not([style*="gradient"])) * {
+  --dimmer-media-filter: none !important;
+}
+
+/* Small SVG icons (marked by content.js) invert with the page like text does,
+   otherwise black glyph icons end up black on a dark background */
+:root.dimmer-active.dimmer-active.dimmer-active.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) img.dimmer-icon {
+  filter: none !important;
+}
+
 
 /* ==========================================================================
    Mode 3: NIGHT SHIFT / WARM DIMMER
@@ -84,11 +109,10 @@ html.dimmer-active:is(.dimmer-mode-smart, .dimmer-mode-oled) :is(picture, video,
    to eliminate blue light and reduce eye fatigue at night.
    ========================================================================== */
 html.dimmer-active.dimmer-mode-night {
-  filter: brightness(var(--dimmer-brightness, 80%)) 
-          contrast(var(--dimmer-contrast, 95%)) 
-          sepia(var(--dimmer-sepia, 40%)) 
+  filter: brightness(var(--dimmer-brightness, 80%))
+          contrast(var(--dimmer-contrast, 95%))
+          sepia(var(--dimmer-sepia, 40%))
           grayscale(var(--dimmer-grayscale, 0%)) !important;
-  transition: filter 0.15s ease-in-out !important;
 }
 
 /* ==========================================================================

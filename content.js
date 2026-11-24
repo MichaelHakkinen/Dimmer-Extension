@@ -42,6 +42,9 @@
     'dimmer-font-bold-high'
   ];
   let pageIsNativelyDark = false;
+  // Classes applyTheme last put on <html>; used to restore them if the site wipes them
+  let expectedClasses = [];
+  let configLoaded = false;
 
   function parseColor(str) {
     const m = str && str.match(/rgba?\(([^)]+)\)/);
@@ -91,7 +94,8 @@
     const isDark = detectNativeDark();
     if (isDark !== pageIsNativelyDark) {
       pageIsNativelyDark = isDark;
-      applyTheme(currentConfig);
+      // Before settings arrive, applying defaults could switch on a disabled site
+      if (configLoaded) applyTheme(currentConfig);
     }
   }
 
@@ -153,27 +157,25 @@
     if (!root) return;
 
     const isActive = shouldBeActive(config);
-
-    // Remove preloading guard and existing mode classes
-    root.classList.remove(...DIMMER_CLASSES);
+    const wanted = [];
 
     if (isActive) {
       const mode = config.mode || 'smart';
-      root.classList.add('dimmer-active');
+      wanted.push('dimmer-active');
       // Site is already dark: inverting it would make it light again, so leave it as-is
       if (!(pageIsNativelyDark && INVERT_MODES.includes(mode))) {
-        root.classList.add(`dimmer-mode-${mode}`);
+        wanted.push(`dimmer-mode-${mode}`);
       }
+      if (config.fontSmoothing !== false) wanted.push('dimmer-font-smoothing');
+      if (config.fontBold === 'medium') wanted.push('dimmer-font-bold-medium');
+      else if (config.fontBold === 'high') wanted.push('dimmer-font-bold-high');
+    }
 
-      if (config.fontSmoothing !== false) {
-        root.classList.add('dimmer-font-smoothing');
-      }
+    // Only touch classes that actually change, so nothing is removed and re-added in between
+    expectedClasses = wanted;
+    syncRootClasses();
 
-      if (config.fontBold === 'medium') {
-        root.classList.add('dimmer-font-bold-medium');
-      } else if (config.fontBold === 'high') {
-        root.classList.add('dimmer-font-bold-high');
-      }
+    if (isActive) {
 
       // Set CSS variables for custom adjustments
       root.style.setProperty('--dimmer-brightness', `${config.brightness ?? 90}%`);
@@ -188,6 +190,38 @@
     }
   }
 
+  function syncRootClasses() {
+    const root = document.documentElement;
+    if (!root) return;
+    for (const c of DIMMER_CLASSES) {
+      const want = expectedClasses.includes(c);
+      if (want !== root.classList.contains(c)) root.classList.toggle(c, want);
+    }
+  }
+
+  // Some sites (React/Vue apps, theme scripts) overwrite <html class> while loading,
+  // which switched dark mode off and on again. Put our classes straight back.
+  if (document.documentElement) {
+    new MutationObserver(() => {
+      if (configLoaded) syncRootClasses();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  /**
+   * Fade only for changes the user makes (popup, shortcut, options).
+   * Never on page load, where the fade showed up as a white flash.
+   */
+  let animateTimer = null;
+  function applyThemeAnimated(config) {
+    const root = document.documentElement;
+    if (root) {
+      root.classList.add('dimmer-animate');
+      clearTimeout(animateTimer);
+      animateTimer = setTimeout(() => root.classList.remove('dimmer-animate'), 300);
+    }
+    applyTheme(config);
+  }
+
   /**
    * Load configuration from chrome storage
    */
@@ -199,6 +233,8 @@
         return;
       }
       currentConfig = { ...DEFAULT_CONFIG, ...items };
+      configLoaded = true;
+      if (document.body) pageIsNativelyDark = detectNativeDark();
       applyTheme(currentConfig);
     });
   }
@@ -214,12 +250,29 @@
    */
   const SOLID_BG_MIN_SIZE = 120;
 
+  const ICON_MAX_SIZE = 48;
+
   function markImage(img) {
-    if (!(img instanceof HTMLImageElement) || !img.complete || !img.naturalWidth) return;
+    if (!(img instanceof HTMLImageElement)) return;
     const rect = img.getBoundingClientRect();
     const w = rect.width || img.naturalWidth;
     const h = rect.height || img.naturalHeight;
-    img.classList.toggle('dimmer-solid-bg', w >= SOLID_BG_MIN_SIZE && h >= SOLID_BG_MIN_SIZE);
+
+    // Small SVG images are icons (usually black glyphs). Flipping them back like photos
+    // left black-on-dark icons nobody could see, so they now invert along with the text.
+    const src = img.currentSrc || img.src || '';
+    const isIcon = /(\.svg(\?|#|$)|^data:image\/svg)/i.test(src) &&
+      w > 0 && h > 0 && w <= ICON_MAX_SIZE && h <= ICON_MAX_SIZE;
+    if (isIcon !== img.classList.contains('dimmer-icon')) img.classList.toggle('dimmer-icon', isIcon);
+
+    if (!img.complete || !img.naturalWidth) return;
+    // Square or rounded images are avatars/logos: a white backing showed up as
+    // white corners around round profile pictures
+    const ratio = h ? w / h : 0;
+    const isAvatarLike = (ratio > 0.85 && ratio < 1.18) ||
+      parseFloat(getComputedStyle(img).borderTopLeftRadius) > 0;
+    const solid = !isIcon && !isAvatarLike && w >= SOLID_BG_MIN_SIZE && h >= SOLID_BG_MIN_SIZE;
+    if (solid !== img.classList.contains('dimmer-solid-bg')) img.classList.toggle('dimmer-solid-bg', solid);
   }
 
   // Image load events don't bubble, so listen in the capture phase (covers lazy-loaded images)
@@ -260,57 +313,101 @@
     }
   }
 
-  // Elements are checked in small batches during idle time so big pages don't stall
-  const bgQueue = new Set();
-  let bgScheduled = false;
-  const idle = window.requestIdleCallback || ((cb) => setTimeout(() => cb({ timeRemaining: () => 8 }), 50));
+  const OBSERVE_OPTIONS = {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeOldValue: true,
+    attributeFilter: ['class', 'style', 'src']
+  };
 
-  function queueBackgroundCheck(el) {
-    bgQueue.add(el);
-    if (!bgScheduled) {
-      bgScheduled = true;
-      idle(processBackgroundQueue);
-    }
-  }
-
-  function processBackgroundQueue(deadline) {
-    const it = bgQueue.values();
-    while (bgQueue.size && deadline.timeRemaining() > 1) {
-      const el = it.next().value;
-      bgQueue.delete(el);
-      if (el.isConnected) markBackground(el);
-    }
-    bgScheduled = false;
-    if (bgQueue.size) {
-      bgScheduled = true;
-      idle(processBackgroundQueue);
-    }
-  }
-
-  function queueSubtree(node) {
-    if (!(node instanceof Element)) return;
-    queueBackgroundCheck(node);
-    for (const el of node.getElementsByTagName('*')) queueBackgroundCheck(el);
+  // Our own class toggles must not re-queue the element (that would loop)
+  function onlyDimmerClassChanged(m) {
+    const strip = (v) => (v || '').split(/\s+/).filter(c => c && !c.startsWith('dimmer-')).join(' ');
+    return strip(m.oldValue) === strip(m.target.getAttribute('class'));
   }
 
   const bgObserver = new MutationObserver((mutations) => {
     for (const m of mutations) {
       if (m.type === 'childList') {
         m.addedNodes.forEach(queueSubtree);
-      } else if (m.target !== document.documentElement) {
-        queueBackgroundCheck(m.target);
+      } else if (m.target !== document.documentElement &&
+                 !(m.attributeName === 'class' && onlyDimmerClassChanged(m))) {
+        queueElement(m.target);
       }
     }
   });
 
+  /**
+   * Shadow DOM (web components, e.g. Reddit, YouTube) is out of reach of the
+   * content stylesheet, so pictures inside it stayed inverted. Each open shadow
+   * root gets a small stylesheet that reads the flip filter from an inherited
+   * CSS variable set in content.css.
+   */
+  const SHADOW_CSS = `
+    :is(img:not(.dimmer-icon), video, canvas, picture, embed, object, iframe, svg:has(image),
+        .dimmer-bg-image, [style*="background-image"]:not([style*="gradient"])) {
+      filter: var(--dimmer-media-filter, none) !important;
+    }
+    :is(picture, video, object, embed, svg:has(image), .dimmer-bg-image,
+        [style*="background-image"]:not([style*="gradient"])) * {
+      --dimmer-media-filter: none !important;
+    }`;
+  const seenShadowRoots = new WeakSet();
+
+  function attachShadowStyles(shadow) {
+    if (seenShadowRoots.has(shadow)) return;
+    seenShadowRoots.add(shadow);
+    const style = document.createElement('style');
+    style.textContent = SHADOW_CSS;
+    shadow.appendChild(style);
+    bgObserver.observe(shadow, OBSERVE_OPTIONS);
+    for (const el of shadow.querySelectorAll('*')) queueElement(el);
+  }
+
+  // Elements are checked in small per-frame batches. Running right before paint
+  // means avatars are already flipped back the first time they are shown; the
+  // time budget keeps big pages from stalling.
+  const bgQueue = new Set();
+  let bgScheduled = false;
+  const FRAME_BUDGET_MS = 6;
+
+  function scheduleQueue() {
+    if (bgScheduled) return;
+    bgScheduled = true;
+    requestAnimationFrame(processBackgroundQueue);
+  }
+
+  function queueElement(el) {
+    if (!(el instanceof Element)) return;
+    bgQueue.add(el);
+    scheduleQueue();
+  }
+
+  function processBackgroundQueue() {
+    bgScheduled = false;
+    const end = performance.now() + FRAME_BUDGET_MS;
+    const it = bgQueue.values();
+    while (bgQueue.size && performance.now() < end) {
+      const el = it.next().value;
+      bgQueue.delete(el);
+      if (!el.isConnected) continue;
+      if (el.shadowRoot) attachShadowStyles(el.shadowRoot);
+      if (el instanceof HTMLImageElement) markImage(el);
+      else markBackground(el);
+    }
+    if (bgQueue.size) scheduleQueue();
+  }
+
+  function queueSubtree(node) {
+    if (!(node instanceof Element)) return;
+    queueElement(node);
+    for (const el of node.getElementsByTagName('*')) queueElement(el);
+  }
+
   function startBackgroundScan() {
     if (document.body) queueSubtree(document.body);
-    bgObserver.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'style']
-    });
+    bgObserver.observe(document.documentElement, OBSERVE_OPTIONS);
   }
 
   if (document.readyState === 'loading') {
@@ -319,12 +416,31 @@
     startBackgroundScan();
   }
   // Stylesheets that finish loading late can add background images after the first pass
+  // Custom elements can also attach shadow roots late, so rescan once more after that
   window.addEventListener('load', () => {
     if (document.body) queueSubtree(document.body);
+    setTimeout(() => { if (document.body) queueSubtree(document.body); }, 1500);
   }, { once: true });
 
   // Check for native dark themes once the page has styled itself
-  // (again on load and shortly after, for sites that switch theme via JS)
+  // (again on load and shortly after, for sites that switch theme via JS).
+  // The first check runs in the first animation frame after <body> exists: frames
+  // wait for render-blocking stylesheets and run before anything is painted, so an
+  // already-dark site is no longer shown inverted (light) for a moment first.
+  function checkBeforeFirstPaint() {
+    requestAnimationFrame(refreshNativeDark);
+  }
+  if (document.body) {
+    checkBeforeFirstPaint();
+  } else if (document.documentElement) {
+    const bodyWatcher = new MutationObserver(() => {
+      if (document.body) {
+        bodyWatcher.disconnect();
+        checkBeforeFirstPaint();
+      }
+    });
+    bodyWatcher.observe(document.documentElement, { childList: true });
+  }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', refreshNativeDark, { once: true });
   } else {
@@ -341,7 +457,7 @@
       for (const key in changes) {
         currentConfig[key] = changes[key].newValue;
       }
-      applyTheme(currentConfig);
+      applyThemeAnimated(currentConfig);
     }
   });
 
@@ -357,7 +473,7 @@
       });
     } else if (message.action === 'UPDATE_CONFIG') {
       currentConfig = { ...currentConfig, ...message.config };
-      applyTheme(currentConfig);
+      applyThemeAnimated(currentConfig);
       sendResponse({ success: true });
     }
     return true;
